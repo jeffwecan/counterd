@@ -29,6 +29,7 @@ type DatabaseClient interface {
 
 	// UpsertCounters is used to register the counter value, updating if it exists
 	UpsertCounters(updates []*ParsedKey) error
+	Ping() error
 }
 
 // PGDatabase provides a database client backed by PostgreSQL
@@ -269,6 +270,10 @@ func (p *PGDatabase) UpsertCounters(counters []*ParsedKey) error {
 		}
 	}
 	return nil
+}
+
+func (p *PGDatabase) Ping() error {
+	return p.db.Ping()
 }
 
 const (

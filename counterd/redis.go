@@ -29,6 +29,7 @@ type RedisClient interface {
 
 	// DeleteKeys deletes a set of keys
 	DeleteKeys([]string) error
+	Ping() error
 }
 
 // PooledClient uses a connection pool for redis
@@ -160,4 +161,12 @@ func (p *PooledClient) DeleteKeys(keys []string) error {
 		return err
 	}
 	return nil
+}
+
+func (p *PooledClient) Ping() error {
+	// Get a connection to redis
+	c := p.pool.Get()
+	defer c.Close()
+	_, err := c.Do("PING")
+	return err
 }
