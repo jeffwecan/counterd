@@ -35,6 +35,29 @@ type APIHandler struct {
 	attrConfig *AttributeConfig
 }
 
+
+func (a *APIHandler) healthHandler(w http.ResponseWriter, req *http.Request) {
+	// a.logger.Debug(req.URL.Path)
+	// fmt.Println(req.URL.Path)
+	err := a.db.Ping()
+	if err != nil {
+		a.logger.Error("unable to ping postgres during health check", "error", err)
+		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+		return
+	}
+
+	err = a.client.Ping()
+	if err != nil {
+		a.logger.Error("unable to ping redis during health check", "error", err)
+		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write([]byte("OK 🎉"))
+
+}
+
 // Ingress is used to take events and update the appropriate redis keys
 func (a *APIHandler) Ingress(w http.ResponseWriter, r *http.Request) {
 	// Verify the method

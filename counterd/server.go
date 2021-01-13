@@ -134,7 +134,8 @@ func NewHTTPHandler(api *APIHandler, auth *AuthConfig) http.Handler {
 	mux.HandleFunc("/v1/query/", api.Query)
 	mux.HandleFunc("/v1/domain/", api.Domain)
 	mux.HandleFunc("/v1/range/", api.Range)
-	mux.HandleFunc("/ui", nil)
+	mux.HandleFunc("/v1/health", api.healthHandler)
+	// mux.HandleFunc("/ui", nil)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
 	})
@@ -142,6 +143,12 @@ func NewHTTPHandler(api *APIHandler, auth *AuthConfig) http.Handler {
 	// Check if auth is enabled, wrap the muxer to enforce
 	if auth != nil && auth.Required {
 		enforce := func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/v1/health" {
+				// Check out early for the healthcheck endpoint
+				mux.ServeHTTP(w, r)
+				return
+			}
+
 			// Check for the Auth header
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
